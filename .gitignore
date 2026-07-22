@@ -1,0 +1,22 @@
+# Ignore local environment keys
+emaos/.env
+
+# Python caching & build artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Logs & temp files
+*.log
+/tmp/

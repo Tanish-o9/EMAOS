@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EMAOS Mission Control — Enterprise Multi-Agent AI Operating System</title>
+  <meta name="description" content="Real-time mission control dashboard for the EMAOS Enterprise Multi-Agent AI Operating System. Monitor CEO agent, specialist agents, task queue, memory, and system metrics." />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ─── Auth Overlay ─────────────────────────────────────────── -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🤖</div>
+      <h1 class="auth-title">EMAOS</h1>
+      <p class="auth-subtitle">Mission Control Dashboard</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="loginUsername">Username</label>
+      <input type="text" id="loginUsername" class="form-input" value="admin" placeholder="admin" />
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" class="form-input" value="emaos_admin_2024" placeholder="password" />
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="apiUrl">API URL</label>
+      <input type="text" id="apiUrl" class="form-input" value="http://localhost:8000" placeholder="http://localhost:8000" />
+    </div>
+    <button class="auth-btn" id="loginBtn" onclick="handleLogin()">Sign In to Mission Control</button>
+    <p class="auth-hint">Default: admin / emaos_admin_2024</p>
+  </div>
+</div>
+
+<!-- ─── Main Application Container ────────────────────────────── -->
+<div class="app-container" id="appContainer" style="display: none;">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon">🧠</span>
+      <span class="brand-text">EMAOS</span>
+    </div>
+    <nav class="sidebar-menu">
+      <a href="#" class="menu-item active" id="menu-dashboard" onclick="switchSection('dashboard')">
+        <span class="menu-icon">📊</span> Dashboard
+      </a>
+      <a href="#" class="menu-item" id="menu-tasks" onclick="switchSection('tasks')">
+        <span class="menu-icon">📋</span> Task Dispatch
+      </a>
+      <a href="#" class="menu-item" id="menu-agents" onclick="switchSection('agents')">
+        <span class="menu-icon">🤖</span> Agent Registry
+      </a>
+      <a href="#" class="menu-item" id="menu-memory" onclick="switchSection('memory')">
+        <span class="menu-icon">💾</span> Memory Tiers
+      </a>
+      <a href="#" class="menu-item" id="menu-reports" onclick="switchSection('reports')">
+        <span class="menu-icon">📝</span> Reports & Audits
+      </a>
+      <a href="#" class="menu-item" id="menu-metrics" onclick="switchSection('metrics')">
+        <span class="menu-icon">⚡</span> System Stats
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="system-status">
+        <span class="status-indicator status-green" id="healthIndicator"></span>
+        <span class="status-text" id="healthStatusText">SYSTEM ACTIVE (CONNECTED)</span>
+      </div>
+      <div class="user-profile">
+        <span class="user-avatar">👤</span>
+        <span class="user-name">Administrator</span>
+      </div>
+    </header>
+
+    <!-- Content Sections -->
+    <div class="content-body">
+      
+      <!-- SECTION: Dashboard -->
+      <section id="section-dashboard" class="content-section">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-title">Active Tasks</div>
+            <div class="stat-value" id="statActiveTasks">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">Total Pipelines Run</div>
+            <div class="stat-value" id="statTotalTasks">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">API Server Status</div>
+            <div class="stat-value text-green" id="statApiStatus">HEALTHY</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">System Latency</div>
+            <div class="stat-value" id="statLatency">10ms</div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Active Task Stream Log -->
+          <div class="panel col-2">
+            <h2 class="panel-title">Mission Logs Stream</h2>
+            <div class="log-container" id="streamLog">
+              <div class="log-line text-muted">[System] Waiting for task submissions...</div>
+            </div>
+          </div>
+          
+          <!-- Quick Dispatch -->
+          <div class="panel">
+            <h2 class="panel-title">Quick Submit</h2>
+            <div class="form-group">
+              <textarea id="quickTaskInput" class="form-input" rows="4" placeholder="Describe the goal for the CEO Agent..."></textarea>
+            </div>
+            <button class="action-btn" onclick="submitQuickTask()">Submit to CEO Agent</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: Task Dispatch -->
+      <section id="section-tasks" class="content-section" style="display: none;">
+        <div class="panel">
+          <h2 class="panel-title">Submit Multi-Agent Task</h2>
+          <div class="form-group">
+            <label class="form-label" for="taskDesc">Task Request Description</label>
+            <textarea id="taskDesc" class="form-input" rows="5" placeholder="E.g. Create a FastAPI endpoint to query users and generate test cases..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="projectContext">Project Context ID</label>
+            <input type="text" id="projectContext" class="form-input" value="default" />
+          </div>
+          <button class="action-btn" onclick="submitTask()">Dispatch Pipeline</button>
+        </div>
+
+        <div class="panel" style="margin-top: 20px;">
+          <h2 class="panel-title">Task Pipelines Queue</h2>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Task ID</th>
+                <th>Project</th>
+                <th>Goal Summary</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="taskQueueBody">
+              <tr>
+                <td colspan="5" class="text-center text-muted">No historical pipelines.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SECTION: Agent Registry -->
+      <section id="section-agents" class="content-section" style="display: none;">
+        <div class="agents-grid" id="agentsRegistryGrid">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </section>
+
+      <!-- SECTION: Memory Tiers -->
+      <section id="section-memory" class="content-section" style="display: none;">
+        <div class="dashboard-grid">
+          <div class="panel">
+            <h2 class="panel-title">Semantic Vector Search</h2>
+            <div class="form-group">
+              <input type="text" id="semanticSearchQuery" class="form-input" placeholder="Query semantic memories..." />
+            </div>
+            <button class="action-btn" onclick="searchSemanticMemory()">Search FAISS Vector Space</button>
+            
+            <div class="search-results-list" id="semanticResults" style="margin-top: 15px;">
+              <!-- Searched results -->
+            </div>
+          </div>
+
+          <div class="panel">
+            <h2 class="panel-title">Warmed Memories In DB</h2>
+            <div class="form-group">
+              <select id="memoryAgentSelect" class="form-input" onchange="loadAgentMemoryLogs()">
+                <option value="ceo">CEO Agent</option>
+                <option value="developer">Developer Agent</option>
+                <option value="tester">Tester Agent</option>
+                <option value="finance">Finance Agent</option>
+                <option value="marketing">Marketing Agent</option>
+                <option value="hr">HR Agent</option>
+                <option value="research">Research Agent</option>
+              </select>
+            </div>
+            <h3 class="panel-subtitle">Episodic Memories (Recent Logs)</h3>
+            <div class="memory-logs-container" id="episodicLogsContainer">
+              <div class="text-muted">Select an agent to view episodic records.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: Reports -->
+      <section id="section-reports" class="content-section" style="display: none;">
+        <div class="panel">
+          <h2 class="panel-title">Generated Analysis Reports</h2>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Report ID</th>
+                <th>Task ID</th>
+                <th>Title</th>
+                <th>Format</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reportsTableBody">
+              <tr>
+                <td colspan="5" class="text-center text-muted">No reports generated yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="panel" id="reportViewerPanel" style="margin-top: 20px; display: none;">
+          <h2 class="panel-title" id="reportViewerTitle">Report Title</h2>
+          <div class="report-content-markdown" id="reportViewerContent">
+            <!-- Raw Report text -->
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: System Stats -->
+      <section id="section-metrics" class="content-section" style="display: none;">
+        <div class="dashboard-grid">
+          <div class="panel">
+            <h2 class="panel-title">Pipeline Throughput</h2>
+            <canvas id="throughputChart" height="200"></canvas>
+          </div>
+          <div class="panel">
+            <h2 class="panel-title">Agent Usage Distributions</h2>
+            <canvas id="agentChart" height="200"></canvas>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
